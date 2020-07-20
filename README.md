@@ -28,7 +28,7 @@ metrics:
 ```yml
 exporter_port: 9158 # Port on which prometheus can call this exporter to get metrics
 log_level: info
-endpoints:
+endpoints: # you can define multiple endpoints even when they return different structures
   - json_data_url: http://stubonweb.herokuapp.com/kong-cluster-status # Url to get json data used for fetching metric values
     metric_name_prefix: kong_cluster_single # All metric names will be prefixed with this value
     metrics:
