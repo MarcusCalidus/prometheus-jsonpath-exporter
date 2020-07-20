@@ -4,6 +4,10 @@ Converts json data from a http url into prometheus metrics using jsonpath
 
 
 ### Config
+ 
+#### For single JSON Endpoint
+
+This syntax is implemented that the old configuration from previous versions do not break.
 
 ```yml
 exporter_port: 9158 # Port on which prometheus can call this exporter to get metrics
@@ -11,12 +15,42 @@ log_level: info
 json_data_url: http://stubonweb.herokuapp.com/kong-cluster-status # Url to get json data used for fetching metric values
 metric_name_prefix: kong_cluster # All metric names will be prefixed with this value
 metrics:
-- name: total_nodes # Final metric name will be kong_cluster_total_nodes
-  description: Total number of nodes in kong cluster
-  path: $.total
-- name: alive_nodes # Final metric name will be kong_cluster_alive_nodes
-  description: Number of live nodes in kong cluster
-  path: count($.data[@.status is "alive"])
+  - name: total_nodes # Final metric name will be kong_cluster_total_nodes
+    description: Total number of nodes in kong cluster
+    path: $.total
+  - name: alive_nodes # Final metric name will be kong_cluster_alive_nodes
+    description: Number of live nodes in kong cluster
+    path: count($.data[@.status is "alive"])
+```
+
+#### For multiple JSON Endpoints
+
+```yml
+exporter_port: 9158 # Port on which prometheus can call this exporter to get metrics
+log_level: info
+endpoints:
+  - json_data_url: http://stubonweb.herokuapp.com/kong-cluster-status # Url to get json data used for fetching metric values
+    metric_name_prefix: kong_cluster_single # All metric names will be prefixed with this value
+    metrics:
+      - name: total_nodes # Final metric name will be kong_cluster_total_nodes
+        description: Total number of nodes in kong cluster
+        path: $.total
+      - name: alive_nodes # Final metric name will be kong_cluster_alive_nodes
+        description: Number of live nodes in kong cluster
+        path: count($.data[@.status is "alive"])
+  - json_data_urls: # OPTIONAL list to configure multiple data URLs separated by tag-label
+      - url: http://stubonweb.herokuapp.com/kong-cluster-status # Url to get json data used for fetching metric values
+        label: kong_cluster_1 # label value for label "tag"
+      - url: http://stubonweb.herokuapp.com/kong-cluster-status # Url to get json data used for fetching metric values
+        label: kong_cluster_2 # label value for label "tag"
+    metric_name_prefix: kong_cluster_multiple # All metric names will be prefixed with this value
+    metrics:
+      - name: total_nodes # Final metric name will be kong_cluster_total_nodes
+        description: Total number of nodes in kong cluster
+        path: $.total
+      - name: alive_nodes # Final metric name will be kong_cluster_alive_nodes
+        description: Number of live nodes in kong cluster
+        path: count($.data[@.status is "alive"])
 ```
 
 See the example below to understand how the json data and metrics will look for this config
@@ -26,7 +60,7 @@ See the example below to understand how the json data and metrics will look for 
 #### Using code (local)
 
 ```
-# Ensure python 2.x and pip installed
+# Ensure python 3.x and pip installed
 pip install -r app/requirements.txt
 python app/exporter.py example/config.yml
 ```
